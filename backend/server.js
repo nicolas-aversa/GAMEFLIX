@@ -137,7 +137,7 @@ app.post('/auth', async (req, res) => {
   .status(500)
   .json({ error: true, message: 'An error occurred while logging into the account' });
 }
-  });
+});
 
 //GET usuario
 app.get('/users', authenticateToken, async (req, res) => {
@@ -173,14 +173,14 @@ app.post('/games', authenticateToken, async (req, res) => {
       category,
       price, minimumRequirements,
       recommendedRequirements,
-      developer,
+      developer: userId,
       imageUrl
     })
 
     await game.save();
     return res
     .status(201)
-    .json({ game: Game, message: 'Game added succesfully' });
+    .json({ game: game, message: 'Game added succesfully' });
 
   } catch (error) {
     console.error('Error creating videogame:', error);
@@ -190,6 +190,31 @@ app.post('/games', authenticateToken, async (req, res) => {
   }
 });
 
+//GET videojuegos
+app.get('/games', authenticateToken, async (req, res) => {
+  const { userId } = req.user;
+
+  try {
+    const games = await Game.find({ developer: userId });
+
+    if (!games) {
+      return res
+        .status(404)
+        .json({ error: true, message: 'No games found for this developer' });
+    }
+
+    return res
+    .status(200)
+    .json({ error: false, games: games, message: 'Games retrieved successfully' });
+  }
+
+  catch (error) {
+    console.error('Error fetching games:', error);
+    return res
+    .status(500)
+    .json({ error: true, message: 'An error occurred while fetching games' });
+  }
+});
 
 // Configuración del puerto y levantar el servidor
 const PORT = process.env.PORT || 5000;
