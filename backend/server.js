@@ -9,7 +9,8 @@ const jwt = require('jsonwebtoken');
 
 const { authenticateToken } = require('./utilities')
 
-const User = require('./models/user.model');
+const Customer = require('./models/customer.model');
+const Developer = require('./models/developer.model');
 const Game = require('./models/game.model');
 
 //Conexión a MongoDB
@@ -21,40 +22,93 @@ const app = express();
 app.use(express.json());
 app.use(cors());
 
-
-
-//SignUp usuario
-app.post('/users', async (req, res) => {
+// SignUp developer
+app.post('/developers', async (req, res) => {
   try {
-    const { firstName, lastName, email, password, birthDate, userType } = req.body;
+    const { companyName, email, password, companyDescription } = req.body;
 
-    if ( !firstName || !lastName || !email || !password || !birthDate || !userType ) {
+    if (!companyName || !email || !password || !companyDescription) {
       return res
         .status(400)
-        .json({ error: true, message: 'All fields are required'});
+        .json({ error: true, message: 'All fields are required' });
+    }
+
+    const [isCustomer, isDeveloper] = await Promise.all([
+      Customer.findOne({ email }),
+      Developer.findOne({ email })
+    ]);
+
+    if (isCustomer || isDeveloper) {
+      return res
+        .status(409)
+        .json({ error: true, message: 'User already exists' });
+    }
+
+    const hashedPassword = await bcrypt.hash(password, 10);
+    const developer = new Developer({
+      companyName,
+      email,
+      password: hashedPassword,
+      companyDescription,
+      userType: 'developer',
+    });
+
+    await developer.save();
+
+    const accessToken = jwt.sign({ userId: developer._id }, process.env.ACCESS_TOKEN_SECRET, { expiresIn: '72h' });
+
+    return res
+      .status(201)
+      .json({
+        error: false,
+        user: { companyName: developer.companyName, email: developer.email, companyDescription: developer.companyDescription, userType: developer.userType },
+        accessToken,
+        message: 'Developer registered successfully',
+      });
+  } catch (error) {
+    console.error('Error creating developer account:', error);
+    return res
+      .status(500)
+      .json({ error: true, message: 'An error occurred while creating developer account' });
+  }
+});
+
+//SignUp customer
+app.post('/customers', async (req, res) => {
+  try {
+    const { firstName, lastName, email, password, birthDate } = req.body;
+
+    if ( !firstName || !lastName || !email || !password || !birthDate ) {
+      return res
+        .status(400)
+        .json({ error: true, message: 'All fields are required' });
   }
 
-  const isUser = await User.findOne({ email });
-  if (isUser) {
+  const [isCustomer, isDeveloper] = await Promise.all([
+    Customer.findOne({ email }),
+    Developer.findOne({ email })
+  ]);
+  
+  if (isCustomer || isDeveloper) {
     return res
       .status(409)
       .json({ error: true, message: 'User already exists'});
   }
  
   const hashedPassword = await bcrypt.hash(password, 10);
-  const user = new User({
+  const customer = new Customer({
     firstName,
     lastName,
     email,
     password: hashedPassword,
     birthDate,
-    userType,
+    userType: 'customer',
   });
 
-  await user.save();
+  await customer.save();
 
   const accessToken = jwt.sign(
-    { userId: user._id },
+    { userId: customer._id },
     process.env.ACCESS_TOKEN_SECRET,
     {
       expiresIn: '72h',
@@ -62,31 +116,31 @@ app.post('/users', async (req, res) => {
   );
 
   return res
-  .status(201)
-  .json({
+    .status(201)
+    .json({
     error: false,
-    user: { 
-      firstName: user.firstName,
-      lastName: user.lastName,
-      email: user.email,
-      password: user.password,
-      birthDate: user.birthDate,
-      userType: user.userType
+    customer: {
+      firstName: customer.firstName,
+      lastName: customer.lastName,
+      email: customer.email,
+      password: customer.password,
+      birthDate: customer.birthDate,
+      userType: customer.userType
     },
     accessToken,
-    message: 'User registered succesfully',
+    message: 'Customer registered succesfully',
   });
 
 } catch (error) {
-  console.error('Error creating account:', error);
+  console.error('Error creating customer account:', error);
   return res
-  .status(500)
-  .json({ error: true, message: 'An error occurred while creating the account' });
+    .status(500)
+    .json({ error: true, message: 'An error occurred while creating customer account' });
 }
 });
 
 //Login usuario
-app.post('/auth', async (req, res) => {
+app.post('/login', async (req, res) => {
   try {
     const { email, password } = req.body;
 
@@ -96,22 +150,28 @@ app.post('/auth', async (req, res) => {
         .json({ error: true, message: 'Both email and password fields are required'});
     }
 
-    const user = await User.findOne ({ email });
-    if (!user) {
+    const [customer, developer] = await Promise.all([
+      Customer.findOne({ email }),
+      Developer.findOne({ email })
+    ]);
+
+    const account = customer || developer;
+
+    if (!account) {
       return res
-      .status(401)
-      .json({ error: true, message: 'User not found' })
+        .status(401)
+        .json({ error: true, message: 'User not found' })
     }
 
-  const isPasswordValid = await bcrypt.compare(password, user.password);
+  const isPasswordValid = await bcrypt.compare(password, account.password);
   if (!isPasswordValid) {
     return res
-    .status(401)
-    .json({ error: true, message: 'Invalid credentials' })
+      .status(401)
+      .json({ error: true, message: 'Invalid credentials' })
   }
 
   const accessToken = jwt.sign (
-    { userId: user._id },
+    { userId: account._id },
     process.env.ACCESS_TOKEN_SECRET,
     {
       expiresIn: '72h',
@@ -119,49 +179,65 @@ app.post('/auth', async (req, res) => {
   );
 
   return res
-  .status(200)
-  .json({
+    .status(200)
+    .json({
     error: false,
     user: { 
-      firstName: user.firstName,
-      lastName: user.lastName,
-      email: user.email
+      email: account.email,
+      userType: account.userType
     },
     accessToken,
-    message: 'User logged in succesfully',
+    message: 'User logged in successfully',
   });
 
 } catch (error) {
-  console.error('Error logging into account:', error);
+  console.error('Error during login:', error);
   return res
-  .status(500)
-  .json({ error: true, message: 'An error occurred while logging into the account' });
+    .status(500)
+    .json({ error: true, message: 'An error occurred during login' });
 }
 });
 
-//GET usuario
+//GET users (customers or developers)
 app.get('/users', authenticateToken, async (req, res) => {
-  const { userId } = req.user
-  
-  const isUser = await User.findOne({ _id: userId });
+  try {
+    const { userId } = req.user
+    
+    const [customer, developer] = await Promise.all([
+      Customer.findOne({ _id: userId }),
+      Developer.findOne({ _id: userId })
+    ]);
 
-  if (!isUser) {
-    return res.sendStatus(401);
+    const account = customer || developer;
+
+    if (!account) {
+      return res
+        .status(401)
+        .json({ error: true, message: 'User not found'});
+    }
+
+    return res
+      .status(200)
+      .json({
+      user: account,
+      message: 'User retrieved successfully',
+    });
+
+  } catch (error) {
+    console.error('Error retrieving user:', error);
+    return res
+      .status(500)
+      .json({ error: true, message: 'An error occurred while retrieving the user' });
   }
-
-  return res.json({
-    user: isUser,
-    message: '',
-  });
 });
 
 //Agregar videojuego
 app.post('/games', authenticateToken, async (req, res) => {
   try {
-    const { title, description, category, price, minimumRequirements, recommendedRequirements, developer, imageUrl } = req.body;
+    const { title, description, category, price, status, minimumRequirements, recommendedRequirements, developer, imageUrl } = req.body;
     const { userId } = req.user
 
-    if (!title || !description || !category || !price || !minimumRequirements || !recommendedRequirements || !developer || !imageUrl) {
+    if (!title || !description || !category || !price || !status ||!minimumRequirements || !recommendedRequirements || !developer || !imageUrl) {
       return res
       .status(400)
       .json({ error: true, message: 'All fields are required' });
@@ -171,16 +247,19 @@ app.post('/games', authenticateToken, async (req, res) => {
       title,
       description,
       category,
-      price, minimumRequirements,
+      price,
+      status,
+      minimumRequirements,
       recommendedRequirements,
       developer: userId,
       imageUrl
     })
 
     await game.save();
+
     return res
     .status(201)
-    .json({ game: game, message: 'Game added succesfully' });
+    .json({ game: game, message: 'Videogame created succesfully' });
 
   } catch (error) {
     console.error('Error creating videogame:', error);

@@ -6,7 +6,9 @@ const gameSchema = new Schema ({
     description: {type: String, required: true},
     category: {type: String, required: true},
     price: {type: Number, required: true, min: 0},
-    status: {type: String, required: true, enum: ['published', 'unpublished'], default: 'unpublished'},
+    os: {type: String, required: true, enum: ['Windows', 'Linux', 'MacOS']},
+    language: {type: String, required: true},
+    playersQty: {type: Number, required: true, min: 1},
     minimumRequirements: {
         processor: {type: String, required: true},
         memory: {type: String, required: true},
@@ -17,6 +19,7 @@ const gameSchema = new Schema ({
         memory: {type: String, required: true},
         graphics: {type: String, required: true}
     },
+    status: {type: String, required: true, enum: ['published', 'unpublished'], default: 'unpublished'},
     developer: {type: Schema.Types.ObjectId, ref: 'User', required: true
     },
     createdAt: {type: Date, default: Date.now},
