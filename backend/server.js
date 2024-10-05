@@ -198,7 +198,7 @@ app.post('/login', async (req, res) => {
 }
 });
 
-//GET users (customers or developers)
+//GET users (customers o developers) con accessToken
 app.get('/users', authenticateToken, async (req, res) => {
   try {
     const { userId } = req.user
@@ -231,13 +231,37 @@ app.get('/users', authenticateToken, async (req, res) => {
   }
 });
 
-//Agregar videojuego
+//Agregar juego
 app.post('/games', authenticateToken, async (req, res) => {
   try {
-    const { title, description, category, price, status, minimumRequirements, recommendedRequirements, developer, imageUrl } = req.body;
+    const { 
+      title,
+      description,
+      category,
+      price,
+      os,
+      language,
+      playersQty,
+      minimumRequirements,
+      recommendedRequirements,
+      status,
+      imageUrl
+    } = req.body;
     const { userId } = req.user
 
-    if (!title || !description || !category || !price || !status ||!minimumRequirements || !recommendedRequirements || !developer || !imageUrl) {
+    if (
+      !title ||
+      !description ||
+      !category ||
+      !price ||
+      !os ||
+      !language ||
+      !playersQty ||
+      !minimumRequirements ||
+      !recommendedRequirements ||
+      !status ||
+      !imageUrl
+    ) {
       return res
       .status(400)
       .json({ error: true, message: 'All fields are required' });
@@ -248,9 +272,20 @@ app.post('/games', authenticateToken, async (req, res) => {
       description,
       category,
       price,
+      os,
+      language,
+      playersQty,
+      minimumRequirements: {
+        cpu: minimumRequirements.cpu,
+        memory: minimumRequirements.memory,
+        gpu: minimumRequirements.gpu
+      },
+      recommendedRequirements: {
+        cpu: recommendedRequirements.cpu,
+        memory: recommendedRequirements.memory,
+        gpu: recommendedRequirements.gpu
+      },
       status,
-      minimumRequirements,
-      recommendedRequirements,
       developer: userId,
       imageUrl
     })
@@ -259,32 +294,57 @@ app.post('/games', authenticateToken, async (req, res) => {
 
     return res
     .status(201)
-    .json({ game: game, message: 'Videogame created succesfully' });
+    .json({ game: game, message: 'Game created successfully' });
 
   } catch (error) {
-    console.error('Error creating videogame:', error);
+    console.error('Error creating game:', error);
     return res
     .status(500)
-    .json({ error: true, message: 'An error occurred while creating videogame' });
+    .json({ error: true, message: 'An error occurred while creating game' });
   }
 });
 
-//GET videojuegos
-app.get('/games', authenticateToken, async (req, res) => {
+//GET todos los juegos de un developer pasando el id del developer
+app.get('/games-all', authenticateToken, async (req, res) => {
   const { userId } = req.user;
 
   try {
     const games = await Game.find({ developer: userId });
 
-    if (!games) {
+    if (!games || games.length === 0 ) {
       return res
         .status(404)
         .json({ error: true, message: 'No games found for this developer' });
     }
 
+    const orderedGames = games.map(game => {
+      return {
+        title: game.title,
+        description: game.description,
+        category: game.category,
+        price: game.price,
+        os: game.os,
+        language: game.language,
+        playersQty: game.playersQty,
+        minimumRequirements: {
+          cpu: game.minimumRequirements.cpu,
+          memory: game.minimumRequirements.memory,
+          gpu: game.minimumRequirements.gpu
+        },
+        recommendedRequirements: {
+          cpu: game.recommendedRequirements.cpu,
+          memory: game.recommendedRequirements.memory,
+          gpu: game.recommendedRequirements.gpu
+        },
+        status: game.status,
+        developer: game.developer,
+        imageUrl: game.imageUrl
+      };
+    });
+
     return res
     .status(200)
-    .json({ error: false, games: games, message: 'Games retrieved successfully' });
+    .json({ error: false, games: orderedGames, message: 'Games from developer retrieved successfully' });
   }
 
   catch (error) {
@@ -295,7 +355,60 @@ app.get('/games', authenticateToken, async (req, res) => {
   }
 });
 
-// Configuración del puerto y levantar el servidor
+//GET juego específico de un developer por id del juego
+app.get('/games/:id', authenticateToken, async (req, res) => {
+  const { userId } = req.user;
+  const { id: gameId } = req.params;
+
+  try {
+    const game = await Game.findOne({ _id: gameId, developer: userId });
+
+    if (!game) {
+      return res
+        .status(404)
+        .json({ error: true, message: 'Game not found' });
+    }
+
+    const orderedGame = {
+      title: game.title,
+      description: game.description,
+      category: game.category,
+      price: game.price,
+      os: game.os,
+      language: game.language,
+      playersQty: game.playersQty,
+      minimumRequirements: {
+        cpu: game.minimumRequirements.cpu,
+        memory: game.minimumRequirements.memory,
+        gpu: game.minimumRequirements.gpu
+      },
+      recommendedRequirements: {
+        cpu: game.recommendedRequirements.cpu,
+        memory: game.recommendedRequirements.memory,
+        gpu: game.recommendedRequirements.gpu
+      },
+      status: game.status,
+      developer: game.developer,
+      imageUrl: game.imageUrl
+    };
+
+    return res
+    .status(200)
+    .json({ error: false, game: orderedGame, message: 'Game retrieved successfully' });
+  }
+
+  catch (error) {
+    console.error('Error fetching games:', error);
+    return res
+    .status(500)
+    .json({ error: true, message: 'An error occurred while fetching game' });
+  }
+});
+
+//GET juegos con filtros
+
+
+// Configuración del puerto y levantar el server
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);

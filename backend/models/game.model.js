@@ -7,20 +7,20 @@ const gameSchema = new Schema ({
     category: {type: String, required: true},
     price: {type: Number, required: true, min: 0},
     os: {type: String, required: true, enum: ['Windows', 'Linux', 'MacOS']},
-    language: {type: String, required: true},
+    language: {type: String, required: true, enum: ['Español', 'Inglés']},
     playersQty: {type: Number, required: true, min: 1},
     minimumRequirements: {
-        processor: {type: String, required: true},
+        cpu: {type: String, required: true},
         memory: {type: String, required: true},
-        graphics: {type: String, required: true}
+        gpu: {type: String, required: true}
     },
     recommendedRequirements: {
-        processor: {type: String, required: true},
+        cpu: {type: String, required: true},
         memory: {type: String, required: true},
-        graphics: {type: String, required: true}
+        gpu: {type: String, required: true}
     },
-    status: {type: String, required: true, enum: ['published', 'unpublished'], default: 'unpublished'},
-    developer: {type: Schema.Types.ObjectId, ref: 'User', required: true
+    status: {type: String, required: true, enum: ['Publicado', 'Despublicado'], default: 'Despublicado'},
+    developer: {type: Schema.Types.ObjectId, ref: 'Developer', required: true
     },
     createdAt: {type: Date, default: Date.now},
     updatedAt: {type: Date, default: Date.now},
