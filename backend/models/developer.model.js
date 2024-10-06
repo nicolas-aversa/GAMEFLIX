@@ -6,6 +6,7 @@ const developerSchema = new Schema({
   email: { type: String, required: true, unique: true },
   password: { type: String, required: true },
   companyDescription: { type: String, required: true },
+  logoImageUrl: { type: String, required: true },
   userType: { type: String, required: true, default: 'developer' },
 });
 

@@ -25,9 +25,9 @@ app.use(cors());
 // SignUp developer
 app.post('/developers', async (req, res) => {
   try {
-    const { companyName, email, password, companyDescription } = req.body;
+    const { companyName, email, password, companyDescription, logoImageUrl } = req.body;
 
-    if (!companyName || !email || !password || !companyDescription) {
+    if (!companyName || !email || !password || !companyDescription, !logoImageUrl) {
       return res
         .status(400)
         .json({ error: true, message: 'All fields are required' });
@@ -50,6 +50,7 @@ app.post('/developers', async (req, res) => {
       email,
       password: hashedPassword,
       companyDescription,
+      logoImageUrl,
       userType: 'developer',
     });
 
@@ -61,10 +62,11 @@ app.post('/developers', async (req, res) => {
       .status(201)
       .json({
         error: false,
-        user: { companyName: developer.companyName, email: developer.email, companyDescription: developer.companyDescription, userType: developer.userType },
+        user: { companyName: developer.companyName, email: developer.email, companyDescription: developer.companyDescription, logoImageUrl: developer.logoImageUrl, userType: developer.userType },
         accessToken,
         message: 'Developer registered successfully',
       });
+
   } catch (error) {
     console.error('Error creating developer account:', error);
     return res
