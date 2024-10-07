@@ -12,13 +12,14 @@ const { authenticateToken } = require('./utilities')
 const Customer = require('./models/customer.model');
 const Developer = require('./models/developer.model');
 const Game = require('./models/game.model');
+const Review = require('./models/review.model');
 
-//Conexión a MongoDB
+// Conexión con MongoDB
 mongoose.connect(config.connectionString);
 
 const app = express();
 
-//Middlewares
+// Middlewares
 app.use(express.json());
 app.use(cors());
 
@@ -75,7 +76,7 @@ app.post('/developers', async (req, res) => {
   }
 });
 
-//SignUp customer
+// SignUp customer
 app.post('/customers', async (req, res) => {
   try {
     const { firstName, lastName, email, password, birthDate } = req.body;
@@ -141,7 +142,7 @@ app.post('/customers', async (req, res) => {
 }
 });
 
-//Login usuario
+// Login user (developer o customer)
 app.post('/login', async (req, res) => {
   try {
     const { email, password } = req.body;
@@ -200,7 +201,7 @@ app.post('/login', async (req, res) => {
 }
 });
 
-//GET users (customers o developers) con accessToken
+// GET users (developer o customer)
 app.get('/users', authenticateToken, async (req, res) => {
   try {
     const { userId } = req.user
@@ -233,7 +234,7 @@ app.get('/users', authenticateToken, async (req, res) => {
   }
 });
 
-//Agregar juego
+// Crear juego
 app.post('/games', authenticateToken, async (req, res) => {
   try {
     const { 
@@ -306,12 +307,12 @@ app.post('/games', authenticateToken, async (req, res) => {
   }
 });
 
-//GET todos los juegos de un developer pasando el id del developer
-app.get('/games-all', authenticateToken, async (req, res) => {
-  const { userId } = req.user;
+// GET todos los juegos de un developer
+app.get('/developers/:developerId/games', authenticateToken, async (req, res) => {
+  const { developerId } = req.params;
 
   try {
-    const games = await Game.find({ developer: userId });
+    const games = await Game.find({ developer: developerId });
 
     if (!games || games.length === 0 ) {
       return res
@@ -319,34 +320,9 @@ app.get('/games-all', authenticateToken, async (req, res) => {
         .json({ error: true, message: 'No games found for this developer' });
     }
 
-    const orderedGames = games.map(game => {
-      return {
-        title: game.title,
-        description: game.description,
-        category: game.category,
-        price: game.price,
-        os: game.os,
-        language: game.language,
-        playersQty: game.playersQty,
-        minimumRequirements: {
-          cpu: game.minimumRequirements.cpu,
-          memory: game.minimumRequirements.memory,
-          gpu: game.minimumRequirements.gpu
-        },
-        recommendedRequirements: {
-          cpu: game.recommendedRequirements.cpu,
-          memory: game.recommendedRequirements.memory,
-          gpu: game.recommendedRequirements.gpu
-        },
-        status: game.status,
-        developer: game.developer,
-        imageUrl: game.imageUrl
-      };
-    });
-
     return res
     .status(200)
-    .json({ error: false, games: orderedGames, message: 'Games from developer retrieved successfully' });
+    .json({ error: false, games, message: 'Games from developer retrieved successfully' });
   }
 
   catch (error) {
@@ -357,13 +333,14 @@ app.get('/games-all', authenticateToken, async (req, res) => {
   }
 });
 
-//GET juego específico de un developer por id del juego
-app.get('/games/:id', authenticateToken, async (req, res) => {
-  const { userId } = req.user;
-  const { id: gameId } = req.params;
+// GET datos de un juego específico
+app.get('/games/:gameId', authenticateToken, async (req, res) => {
+  const { gameId } = req.params;
 
   try {
-    const game = await Game.findOne({ _id: gameId, developer: userId });
+    const game = await Game.findById(gameId)
+      .populate('developer', 'companyName companyDescription logoImageUrl')
+      .populate('review', 'firstName lastName content rating createdAt');
 
     if (!game) {
       return res
@@ -389,8 +366,18 @@ app.get('/games/:id', authenticateToken, async (req, res) => {
         memory: game.recommendedRequirements.memory,
         gpu: game.recommendedRequirements.gpu
       },
-      status: game.status,
-      developer: game.developer,
+      developer: {
+        companyName: game.developer.companyName,
+        companyDescription: game.developer.companyDescription,
+        logoImageUrl: game.developer.logoImageUrl
+      },
+      review: {
+        firstName: game.review.firstName,
+        lastName: game.review.lastName,
+        content: game.review.content,
+        rating: game.review.rating,
+        createdAt: game.review.createdAt
+      },
       imageUrl: game.imageUrl
     };
 
@@ -407,7 +394,47 @@ app.get('/games/:id', authenticateToken, async (req, res) => {
   }
 });
 
-//GET juegos con filtros
+// GET juegos con filtros
+app.get('/games', async (req, res) => {
+  try {
+    const { category, price, os, language, playersQty, rating } = req.query;
+
+    const filters = {};
+
+    if (category) filters.category = category;
+    if (price) filters.price = price;
+    if (os) filters.os = os;
+    if (language) filters.language = language;
+    if (playersQty) filters.playersQty = playersQty;
+    if (rating) filters.rating = rating;
+
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 12;
+    const skip = (page - 1) * limit;
+
+    const orderBy = req.query.orderBy || 'price';
+    const order = req.query.order === 'desc' ? -1 : 1;
+
+    const games = await Game.find(filters)
+      .sort({ [orderBy]: order })
+      .skip(skip)
+      .limit(limit);
+
+    if (!games || games.length === 0) {
+      return res
+        .status(404)
+        .json({ error: true, message: 'No games found with these filters' });
+    }
+
+    return res
+      .status(200)
+      .json({ error: false, games, message: 'Games retrieved successfully', page, limit });
+
+  } catch (error) {
+    console.error('Error fetching games:', error);
+    return res.status(500).json({ error: true, message: 'An error occurred while fetching games' });
+  }
+});
 
 
 // Configuración del puerto y levantar el server

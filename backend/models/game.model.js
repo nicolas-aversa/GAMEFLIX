@@ -20,8 +20,8 @@ const gameSchema = new Schema ({
         gpu: {type: String, required: true}
     },
     status: {type: String, required: true, enum: ['Publicado', 'Despublicado'], default: 'Despublicado'},
-    developer: {type: Schema.Types.ObjectId, ref: 'Developer', required: true
-    },
+    developer: {type: Schema.Types.ObjectId, ref: 'Developer', required: true},
+    review: [{ type: Schema.Types.ObjectId, ref: 'Review' }],
     createdAt: {type: Date, default: Date.now},
     updatedAt: {type: Date, default: Date.now},
     imageUrl: {type: String, required: true}
