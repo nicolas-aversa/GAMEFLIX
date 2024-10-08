@@ -5,7 +5,7 @@ module.exports = {
   ],
   theme: {
     fontFamily: {
-      display: ["Inter", "sans-serif"]
+      display: ["Inter", "sans-serif", "Fedoka One"]
     },
     extend: {
       //Colores usados en el proyecto
