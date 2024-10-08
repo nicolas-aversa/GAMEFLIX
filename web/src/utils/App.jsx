@@ -3,14 +3,14 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import './index.css'
 import Home from '../components/pages/Home/Home';
 import SignUp from '../components/pages/Auth/SignUp';
-import Login from '../components/pages/Auth/loginn';
-import Navbar from '../components/header';
+import Login from '../components/pages/Auth/Login';
+import Header from '../components/header';
 
 function App() {
   return (
     <div>
       <Router>
-        <Navbar />
+        <Header />
         <Routes>
           <Route path = '/' element={<Home />} />
           <Route path = '/signup' element={<SignUp />} />

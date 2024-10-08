@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import gameflixLogo from '../img/gameflix-logo.png'
 
-const Navbar = () => {
+const Header = () => {
 const [searchValue, setSearchValue] = useState('');
 
 const handleSearchChange = (e) => {
@@ -17,7 +17,6 @@ const handleSearchSubmit = (e) => {
     <nav className="bg-background p-4 flex justify-between items-center">
         <div className="flex items-center">
         <img src={gameflixLogo} alt="GameFlix Logo" className="h-8 mr-2" />
-        <span className="text-secondary text-2xl font-display font-bold">FLIX</span>
         </div>
         <div className="flex-grow mx-4">
         <form onSubmit={handleSearchSubmit} className="relative max-w-xl mx-auto">
@@ -72,4 +71,4 @@ const handleSearchSubmit = (e) => {
     );
 };
 
-export default Navbar;
+export default Header;
