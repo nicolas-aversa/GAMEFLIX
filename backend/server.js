@@ -436,9 +436,11 @@ app.get('/games', async (req, res) => {
   }
 });
 
+// Crear review
+
 
 // Configuración del puerto y levantar el server
-const PORT = process.env.PORT || 8000;
+const PORT = process.env.PORT || 3800;
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
 });
