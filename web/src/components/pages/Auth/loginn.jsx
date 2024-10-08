@@ -9,23 +9,6 @@ const loginn = () => {
   const togglePasswordVisibility = () => setShowPassword(!showPassword);
 
   return (
-    <div className="min-h-screen bg-[#220447] text-white font-['Inter'] flex flex-col">
-      <nav className="p-4 flex justify-between items-center">
-        <div className="text-2xl font-['Fredoka_One'] text-white">
-          GAME<span className="text-[#C93DEC]">FLIX</span>
-        </div>
-        <div className="flex items-center space-x-4">
-          <input
-            type="text"
-            placeholder="Buscar videojuegos"
-            className="bg-[#3A0453] rounded-full px-4 py-2 text-sm"
-          />
-          <button className="bg-[#C93DEC] text-white rounded-full px-4 py-2 text-sm font-bold">
-            Registrarse
-          </button>
-          <button className="text-white text-sm font-bold">Iniciar sesión</button>
-        </div>
-      </nav>
       <div className="flex-grow flex justify-center items-center">
         <div className="bg-[#3A0453] p-8 rounded-lg w-96">
           <h2 className="text-2xl font-bold mb-6 text-center">Bienvenido de vuelta!</h2>
@@ -82,7 +65,6 @@ const loginn = () => {
           </form>
         </div>
       </div>
-    </div>
   );
 };
 

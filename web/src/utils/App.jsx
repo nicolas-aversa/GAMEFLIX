@@ -4,11 +4,13 @@ import './index.css'
 import Home from '../components/pages/Home/Home';
 import SignUp from '../components/pages/Auth/SignUp';
 import Login from '../components/pages/Auth/loginn';
+import Navbar from '../components/header';
 
 function App() {
   return (
     <div>
       <Router>
+        <Navbar />
         <Routes>
           <Route path = '/' element={<Home />} />
           <Route path = '/signup' element={<SignUp />} />
