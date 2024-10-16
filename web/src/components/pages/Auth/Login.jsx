@@ -13,7 +13,7 @@ const Login = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#220447] text-white flex justify-center items-center font-['Inter']">
+    <div className="min-h-6 bg-[#220447] text-white flex justify-center items-center font-['Inter']">
       <div className="w-full max-w-md p-6">
         <h2 className="text-3xl font-bold mb-12 text-center">Bienvenido de vuelta!</h2>
         <form onSubmit={handleSubmit}>
