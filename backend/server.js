@@ -437,6 +437,52 @@ app.get('/games', async (req, res) => {
 });
 
 // Crear review
+app.post('/games/:gameId/reviews', authenticateToken, async (req, res) => {
+  const { gameId } = req.params;
+  const { content, rating } = req.body;
+  const { userId } = req.user;
+
+  try {
+    const game = await Game.findById(gameId);
+
+    if (!game) {
+      return res
+        .status(404)
+        .json({ error: true, message: 'Game not found' });
+    }
+
+    const customer = await Customer.findById(userId);
+
+    if (!customer) {
+      return res
+        .status(404)
+        .json({ error: true, message: 'Customer not found' });
+    }
+
+    const review = new Review({
+      content,
+      rating,
+      game: gameId,
+      customer: userId,
+      firstName: customer.firstName,
+      lastName: customer.lastName
+    });
+
+    await review.save();
+
+    return res
+      .status(201)
+      .json({ error: false, review, message: 'Review created successfully' });
+
+  } catch (error) {
+    console.error('Error creating review:', error);
+    return res
+      .status(500)
+      .json({ error: true, message: 'An error occurred while creating review' });
+  }
+});
+
+// GET reviews de un juego específico
 
 
 // Configuración del puerto y levantar el server
