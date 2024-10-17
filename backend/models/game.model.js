@@ -22,14 +22,23 @@ const gameSchema = new Schema ({
     status: {type: String, required: true, enum: ['Publicado', 'Despublicado'], default: 'Despublicado'},
     developer: {type: Schema.Types.ObjectId, ref: 'Developer', required: true},
     review: [{ type: Schema.Types.ObjectId, ref: 'Review' }],
+    wishlistCount: { type: Number, default: 0 },
+    views: { type: Number, default: 0 },
+    purchases: { type: Number, default: 0 },
+    conversionRate: { type: Number, default: 0 },
     createdAt: {type: Date, default: Date.now},
     updatedAt: {type: Date, default: Date.now},
-    imageUrl: {type: String, required: true}
+    imageUrl: {type: String, required: true, match: /^https?:\/\//}
 });
 
-// Middleware para actualizar updatedAt antes de cada save
+// Middleware para actualizar updatedAt y conversionRate antes de cada save
 gameSchema.pre('save', function(next) {
     this.updatedAt = Date.now();
+    if (this.views > 0) {
+      this.conversionRate = (this.purchases / this.views) * 100;
+    } else {
+      this.conversionRate = 0;
+    }
     next();
   });
 

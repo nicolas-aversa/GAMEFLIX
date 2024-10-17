@@ -8,6 +8,8 @@ const developerSchema = new Schema({
   companyDescription: { type: String, required: true },
   logoImageUrl: { type: String, required: true },
   userType: { type: String, required: true, default: 'developer' },
+  resetPasswordToken: { type: String },
+  resetPasswordExpires: { type: Date }
 });
 
 module.exports = mongoose.model('Developer', developerSchema);

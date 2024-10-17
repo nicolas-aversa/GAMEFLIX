@@ -1,7 +1,8 @@
 require('dotenv').config();
 
 const express = require('express');
-const bcrypt = require('bcrypt')
+const bcrypt = require('bcrypt');
+const crypto = require('crypto');
 const cors = require('cors');
 const mongoose = require('mongoose');
 const config = require('./config.json');
@@ -13,6 +14,7 @@ const Customer = require('./models/customer.model');
 const Developer = require('./models/developer.model');
 const Game = require('./models/game.model');
 const Review = require('./models/review.model');
+const Payment = require('./models/payment.model');
 
 // Conexión con MongoDB
 mongoose.connect(config.connectionString);
@@ -483,6 +485,298 @@ app.post('/games/:gameId/reviews', authenticateToken, async (req, res) => {
 });
 
 // GET reviews de un juego específico
+app.get('/games/:gameId/reviews', async (req, res) => {
+  const { gameId } = req.params;
+
+  try {
+    const reviews = await Review.find({ game: gameId });
+
+    if (reviews.length === 0) {
+      return res
+        .status(404)
+        .json({ error: true, message: 'No reviews found for this game' });
+    }
+    return res
+      .status(200)
+      .json({ error: false, reviews, message: 'Reviews retrieved successfully' });
+  } catch (error) {
+    console.error('Error fetching reviews:', error);
+    return res
+      .status(500)
+      .json({ error: true, message: 'An error occurred while fetching reviews' });
+  }
+});
+
+//GET stats de todos los juegos de un developer
+app.get('/developers/:developerId/games/stats', authenticateToken, async (req, res) => {
+  const { developerId } = req.params;
+
+  try {
+    const games = await Game.find({ developer: developerId });
+
+    if (!games || games.length === 0 ) {
+      return res
+        .status(404)
+        .json({ error: true, message: 'No games found for this developer' });
+    }
+
+    const gameStats = games.map(game => ({
+      title: game.title,
+      category: game.category,
+      price: game.price,
+      views: game.views,
+      purchases: game.purchases,
+      conversionRate: game.views > 0 ? ((game.purchases / game.views) * 100).toFixed(2) : 0,
+      wishlistCount: game.wishlistCount
+    }));
+
+    return res
+      .status(200)
+      .json({ error: false, games: gameStats, message: 'Games stats from developer retrieved successfully' });
+  } catch (error) {
+    console.error('Error fetching games stats:', error);
+
+    return res
+      .status(500)
+      .json({ error: true, message: 'An error occurred while fetching games stats' });
+  }
+});
+
+//Agregar juego a wishlist
+app.post('/customers/:customerId/wishlist', authenticateToken, async (req, res) => {
+  const { customerId } = req.params;
+  const { gameId } = req.body;
+
+  try {
+    const customer = await Customer.findById(customerId);
+
+    if (!customer) {
+      return res
+        .status(404)
+        .json({ error: true, message: 'Customer not found' });
+    }
+
+    if (customer.wishlist.includes(gameId)) {
+      return res
+        .status(400)
+        .json({ error: true, message: 'Game already in wishlist' });
+    }
+
+    customer.wishlist.push(gameId);
+    await customer.save();
+
+    return res
+      .status(200)
+      .json({ error: false, message: 'Game added to wishlist successfully' });
+
+  } catch (error) {
+    console.error('Error adding game to wishlist:', error);
+    return res
+      .status(500)
+      .json({ error: true, message: 'An error occurred while adding game to wishlist' });
+  }
+});
+
+//GET juegos en wishlist de un customer
+app.get('/customers/:customerId/wishlist', authenticateToken, async (req, res) => {
+  const { customerId } = req.params;
+
+  try {
+    const customer = await Customer.findById(customerId);
+
+    if (!customer) {
+      return res
+        .status(404)
+        .json({ error: true, message: 'Customer not found' });
+    }
+
+    const games = await Game.find({ _id: { $in: customer.wishlist } }).select('title category price imageUrl');
+
+    if (!games || games.length === 0) {
+      return res
+        .status(404)
+        .json({ error: true, message: 'No games found in wishlist' });
+    }
+
+    return res
+      .status(200)
+      .json({ error: false, games, message: 'Games in wishlist retrieved successfully' });
+
+  } catch (error) {
+    console.error('Error fetching wishlist games:', error);
+    return res
+      .status(500)
+      .json({ error: true, message: 'An error occurred while fetching wishlist games' });
+  }
+});
+
+//Comprar juego
+app.post('/customers/:customerId/games/purchases', authenticateToken, async (req, res) => {
+  const { customerId } = req.params;
+  const { gameId, cardNumber, cardProvider, cardExpDate, cardCVC } = req.body;
+
+  try {
+    const customer = await Customer.findById(customerId);
+
+    if (!customer) {
+      return res
+        .status(404)
+        .json({ error: true, message: 'Customer not found' });
+    }
+
+    const game = await Game.findById(gameId);
+
+    if (!game) {
+      return res
+        .status(404)
+        .json({ error: true, message: 'Game not found' });
+    }
+
+    if (!cardNumber || !cardProvider || !cardExpDate || !cardCVC) {
+      return res
+        .status(400)
+        .json({ error: true, message: 'Invalid payment details' });
+    }
+
+    const payment = new Payment({ 
+      cardNumber, 
+      cardProvider, 
+      cardExpDate, 
+      cardCVC, 
+      gameId, 
+      customerId 
+    });
+
+    await payment.save();
+
+    return res
+      .status(200)
+      .json({ error: false, message: 'Game purchased successfully' });
+
+  } catch (error) {
+    console.error('Error purchasing game:', error);
+    return res
+      .status(500)
+      .json({ error: true, message: 'An error occurred while purchasing game' });
+  }
+});
+
+//GET juegos comprados de un customer
+app.get('/customers/:customerId/games/purchases', authenticateToken, async (req, res) => {
+  const { customerId } = req.params;
+
+  try {
+    const customer = await Customer.findById(customerId);
+
+    if (!customer) {
+      return res
+        .status(404)
+        .json({ error: true, message: 'Customer not found' });
+    }
+
+    const purchases = await Payment.find({ customerId }).populate('gameId', 'title category price imageUrl');
+
+    if (!purchases || purchases.length === 0) {
+      return res
+        .status(404)
+        .json({ error: true, message: 'No purchases found' });
+    }
+
+    return res
+      .status(200)
+      .json({ error: false, purchases, message: 'Purchases retrieved successfully' });
+
+  } catch (error) {
+    console.error('Error fetching purchases:', error);
+    return res
+      .status(500)
+      .json({ error: true, message: 'An error occurred while fetching purchases' });
+  }
+});
+
+//Request de reset de password
+app.post('/users/password-reset-request', async (req, res) => {
+  try {
+    const { email } = req.body;
+
+    if (!email) {
+      return res
+        .status(400)
+        .json({ error: true, message: 'Email is required' });
+    }
+
+    const user = await Customer.findOne({ email }) || await Developer.findOne({ email });
+
+    if (!user) {
+      return res
+        .status(404)
+        .json({ error: true, message: 'User not found' });
+    }
+
+    const resetToken = crypto.randomBytes(20).toString('hex');
+    const resetTokenExpiration = Date.now() + 3600000; // 1 hour from now
+
+    user.resetPasswordToken = resetToken;
+    user.resetPasswordExpires = resetTokenExpiration;
+    await user.save();
+
+    return res
+      .status(200)
+      .json({ 
+        error: false, 
+        message: 'Password reset token generated successfully', 
+        resetToken,
+        resetTokenExpiration 
+      });
+  } catch (error) {
+    console.error('Error generating password reset token:', error);
+    return res
+      .status(500)
+      .json({ error: true, message: 'An error occurred while generating password reset token' });
+  }
+});
+
+//Reset de password
+app.post('/users/password-reset', async (req, res) => {
+  try {
+    const { resetToken, newPassword } = req.body;
+
+    if (!resetToken || !newPassword) {
+      return res
+        .status(400)
+        .json({ error: true, message: 'Reset token and new password are required' });
+    }
+
+    const user = await Customer.findOne({ 
+      resetPasswordToken: resetToken,
+      resetPasswordExpires: { $gt: Date.now() }
+    }) || await Developer.findOne({ 
+      resetPasswordToken: resetToken,
+      resetPasswordExpires: { $gt: Date.now() }
+    });
+
+    if (!user) {
+      return res
+        .status(400)
+        .json({ error: true, message: 'Password reset token is invalid or has expired' });
+    }
+
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+    user.password = hashedPassword;
+    user.resetPasswordToken = undefined;
+    user.resetPasswordExpires = undefined;
+    await user.save();
+
+    return res
+      .status(200)
+      .json({ error: false, message: 'Password has been reset successfully' });
+  } catch (error) {
+    console.error('Error resetting password:', error);
+    return res
+      .status(500)
+      .json({ error: true, message: 'An error occurred while resetting password' });
+  }
+});
 
 
 // Configuración del puerto y levantar el server

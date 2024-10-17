@@ -8,6 +8,9 @@ const customerSchema = new Schema ({
     password: {type: String, required: true},
     birthDate: {type: Date, required: true},
     userType: {type: String, required: true, default: 'customer'},
+    wishlist: { type: [Schema.Types.ObjectId], ref: 'Game', default: [] },
+    resetPasswordToken: { type: String },
+    resetPasswordExpires: { type: Date }
 });
 
 module.exports = mongoose.model('Customer', customerSchema);
