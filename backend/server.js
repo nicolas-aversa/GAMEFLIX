@@ -268,8 +268,8 @@ app.post('/games', authenticateToken, async (req, res) => {
       !imageUrl
     ) {
       return res
-      .status(400)
-      .json({ error: true, message: 'All fields are required' });
+        .status(400)
+        .json({ error: true, message: 'All fields are required' });
     }
 
     const game = new Game({
@@ -298,14 +298,122 @@ app.post('/games', authenticateToken, async (req, res) => {
     await game.save();
 
     return res
-    .status(201)
-    .json({ game: game, message: 'Game created successfully' });
+      .status(201)
+      .json({ game: game, message: 'Game created successfully' });
 
   } catch (error) {
     console.error('Error creating game:', error);
     return res
+      .status(500)
+      .json({ error: true, message: 'An error occurred while creating game' });
+  }
+});
+
+//Modificar juego
+app.put('/games/:gameId', authenticateToken, async (req, res) => {
+  const { gameId } = req.params;
+  const { title, description, category, price, os, language, playersQty, minimumRequirements, recommendedRequirements, status, imageUrl } = req.body;
+
+  try {
+    const game = await Game.findById(gameId);
+
+    if (!game) {
+      return res
+        .status(404)
+        .json({ error: true, message: 'Game not found' });
+    }
+
+    if (title) game.title = title;
+    if (description) game.description = description;
+    if (category) game.category = category;
+    if (price) game.price = price;
+    if (os) game.os = os;
+    if (language) game.language = language;
+    if (playersQty) game.playersQty = playersQty;
+    if (minimumRequirements) game.minimumRequirements = minimumRequirements;
+    if (recommendedRequirements) game.recommendedRequirements = recommendedRequirements;
+    if (status) game.status = status;
+    if (imageUrl) game.imageUrl = imageUrl;
+
+    await game.save();
+
+    return res
+      .status(200)
+      .json({ error: false, message: 'Game updated successfully' });
+
+  } catch (error) {
+    console.error('Error updating game:', error);
+
+    return res
+      .status(500)
+      .json({ error: true, message: 'An error occurred while updating game' });
+  }
+});
+
+//Eliminar juego
+app.delete('/games/:gameId', authenticateToken, async (req, res) => {
+  const { gameId } = req.params;
+
+  try {
+    const game = await Game.findByIdAndDelete(gameId);
+
+    if (!game) {
+      return res
+        .status(404)
+        .json({ error: true, message: 'Game not found' });
+    }
+
+    return res
+      .status(200)
+      .json({ error: false, message: 'Game deleted successfully' });
+
+  } catch (error) {
+    console.error('Error deleting game:', error);
+    
+    return res
+      .status(500)
+      .json({ error: true, message: 'An error occurred while deleting game' });
+  }
+});
+
+//Publicar o despublicar juego
+app.patch('/games/:gameId/status', authenticateToken, async (req, res) => {
+  const { gameId } = req.params;
+  const { status } = req.body;
+
+  // Validar que el estado sea 'Publicado' o 'Despublicado'
+  if (!['Publicado', 'Despublicado'].includes(status)) {
+    return res.status(400).json({ error: true, message: 'Invalid status value' });
+  }
+
+  try {
+    const game = await Game.findById(gameId);
+
+    if (!game) {
+      return res
+      .status(404)
+      .json({ error: true, message: 'Game not found' });
+    }
+
+    // Verificar si el juego ya está en el estado deseado
+    if (game.status === status) {
+      return res
+      .status(400)
+      .json({ error: true, message: `Game is already ${status.toLowerCase()}` });
+    }
+
+    game.status = status;
+    await game.save();
+
+    return res
+    .status(200)
+    .json({ error: false, message: 'Game status updated successfully' });
+
+  } catch (error) {
+    console.error('Error updating game status:', error);
+    return res
     .status(500)
-    .json({ error: true, message: 'An error occurred while creating game' });
+    .json({ error: true, message: 'An error occurred while updating game status' });
   }
 });
 
@@ -574,6 +682,43 @@ app.post('/customers/:customerId/wishlist', authenticateToken, async (req, res) 
     return res
       .status(500)
       .json({ error: true, message: 'An error occurred while adding game to wishlist' });
+  }
+});
+
+//Eliminar juego de wishlist
+app.delete('/customers/:customerId/wishlist/:gameId', authenticateToken, async (req, res) => {
+  const { customerId, gameId } = req.params;
+
+  try {
+    const customer = await Customer.findById(customerId);
+
+    if (!customer) {
+      return res
+        .status(404)
+        .json({ error: true, message: 'Customer not found' });
+    }
+
+    // Verificar si el juego está en la wishlist
+    const gameIndex = customer.wishlist.indexOf(gameId);
+    if (gameIndex === -1) {
+      return res
+        .status(404)
+        .json({ error: true, message: 'Game not found in wishlist' });
+    }
+
+    // Eliminar el juego de la wishlist
+    customer.wishlist.splice(gameIndex, 1);
+    await customer.save();
+
+    return res
+      .status(200)
+      .json({ error: false, message: 'Game removed from wishlist successfully' });
+
+  } catch (error) {
+    console.error('Error removing game from wishlist:', error);
+    return res
+      .status(500)
+      .json({ error: true, message: 'An error occurred while removing game from wishlist' });
   }
 });
 
