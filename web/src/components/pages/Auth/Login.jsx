@@ -5,11 +5,39 @@ const Login = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
 
   const togglePasswordVisibility = () => setShowPassword(!showPassword);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
+    setError('');
+
+    try {
+      const response = await fetch('http://localhost:8000/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email, password }),
+      });
+
+      const result = await response.json();
+
+      if (response.ok) {
+        // Store the JWT token in localStorage
+        localStorage.setItem('token', result.accessToken);
+        // Log the accessToken to the console
+      console.log('Access Token:', result.accessToken);
+        // Redirect to the home page
+        window.location.href = '/';
+      } else {
+        setError(result.message);
+      }
+    } catch (error) {
+      console.error('Error during login:', error);
+      setError('An error occurred during login. Please try again.');
+    }
   };
 
   return (
@@ -28,7 +56,6 @@ const Login = () => {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 className="w-full bg-[#3A0453] rounded-full px-4 py-2 pr-10 text-sm"
-                placeholder="correo@example.com"
                 required
               />
               <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
@@ -63,6 +90,11 @@ const Login = () => {
               </button>
             </div>
           </div>
+          {error && (
+            <div className="mb-6 text-red-500 text-sm">
+              {error}
+            </div>
+          )}
           <div className="mb-12 text-right">
             <a href="#" className="text-sm text-[#C93DEC] hover:underline">
               ¿Olvidaste tu contraseña?

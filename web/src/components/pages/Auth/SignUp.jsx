@@ -46,8 +46,7 @@ const SignUp = () => {
                     name="nombre"
                     value={formData.nombre}
                     onChange={handleChange}
-                    className="w-full bg-[#3A0453] rounded-full px-4 py-2"
-                    placeholder="Example"
+                    className="w-full bg-[#3A0453] text-gray-300 rounded-full px-4 py-2"
                   />
                 </div>
                 <div className="w-1/2">
@@ -58,8 +57,7 @@ const SignUp = () => {
                     name="apellido"
                     value={formData.apellido}
                     onChange={handleChange}
-                    className="w-full bg-[#3A0453] rounded-full px-4 py-2"
-                    placeholder="Example"
+                    className="w-full bg-[#3A0453] text-gray-300 rounded-full px-4 py-2"
                   />
                 </div>
               </div>
@@ -72,7 +70,7 @@ const SignUp = () => {
                     name="contrasena"
                     value={formData.contrasena}
                     onChange={handleChange}
-                    className="w-full bg-[#3A0453] rounded-full px-4 py-2 pr-10"
+                    className="w-full bg-[#3A0453] text-gray-300 rounded-full px-4 py-2 pr-10"
                   />
                   <button
                     type="button"
@@ -87,19 +85,6 @@ const SignUp = () => {
                   </button>
                 </div>
               </div>
-              <div className="mb-4">
-                <label htmlFor="tipoUsuario" className="block mb-2">Tipo de usuario</label>
-                <select
-                  id="tipoUsuario"
-                  name="tipoUsuario"
-                  value={formData.tipoUsuario}
-                  onChange={handleChange}
-                  className="w-full bg-[#3A0453] rounded-full px-4 py-2 appearance-none"
-                >
-                  <option value="Cliente">Cliente</option>
-                  <option value="Developer">Developer</option>
-                </select>
-              </div>
             </div>
             
             <div className="w-1/2 pl-8 flex flex-col justify-between">
@@ -112,8 +97,7 @@ const SignUp = () => {
                     name="correo"
                     value={formData.correo}
                     onChange={handleChange}
-                    className="w-full bg-[#3A0453] rounded-full px-4 py-2"
-                    placeholder="correo@example.com"
+                    className="w-full bg-[#3A0453] text-gray-300 rounded-full px-4 py-2"
                   />
                 </div>
                 <div className="mb-4">
@@ -124,7 +108,7 @@ const SignUp = () => {
                     name="fechaNacimiento"
                     value={formData.fechaNacimiento}
                     onChange={handleChange}
-                    className="w-full bg-[#3A0453] rounded-full px-4 py-2 appearance-none text-[#C93DEC] [&::-webkit-calendar-picker-indicator]:filter [&::-webkit-calendar-picker-indicator]:invert [&::-webkit-calendar-picker-indicator]:sepia [&::-webkit-calendar-picker-indicator]:saturate-[10000%] [&::-webkit-calendar-picker-indicator]:hue-rotate-[275deg]"
+                    className="w-full bg-[#3A0453] text-gray-300 rounded-full px-4 py-2 appearance-none text-white placeholder-white [&::-webkit-calendar-picker-indicator]:filter [&::-webkit-calendar-picker-indicator]:invert [&::-webkit-calendar-picker-indicator]:brightness-0 [&::-webkit-calendar-picker-indicator]:opacity-70"
                   />
                 </div>
               </div>
