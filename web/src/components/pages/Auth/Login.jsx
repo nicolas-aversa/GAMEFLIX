@@ -1,17 +1,23 @@
-import React, { useState } from 'react';
+import React, { useState, useContext } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Eye, EyeOff, Mail } from 'lucide-react';
+import { AuthContext } from '../../../context/AuthContext'; // Ruta correcta para AuthContext
 
 const Login = () => {
+  const navigate = useNavigate();
   const [showPassword, setShowPassword] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
+  const [success, setSuccess] = useState(''); // Estado para manejar el mensaje de éxito
+  const { login } = useContext(AuthContext); // Consumir el contexto de autenticación
 
   const togglePasswordVisibility = () => setShowPassword(!showPassword);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
+    setSuccess('');
 
     try {
       const response = await fetch('http://localhost:8000/login', {
@@ -25,18 +31,25 @@ const Login = () => {
       const result = await response.json();
 
       if (response.ok) {
-        // Store the JWT token in localStorage
-        localStorage.setItem('token', result.accessToken);
-        // Log the accessToken to the console
-      console.log('Access Token:', result.accessToken);
-        // Redirect to the home page
-        window.location.href = '/';
+        // Llamar a la función login del contexto para actualizar el estado de autenticación
+        login(result.accessToken);
+        setSuccess('Login successful!');
+        setTimeout(() => {
+          setSuccess('');
+          navigate('/');
+        }, 1000);
       } else {
         setError(result.message);
+        setTimeout(() => {
+          setError('');
+        }, 5000);
       }
     } catch (error) {
       console.error('Error during login:', error);
       setError('An error occurred during login. Please try again.');
+      setTimeout(() => {
+        setError('');
+      }, 5000);
     }
   };
 
@@ -93,6 +106,11 @@ const Login = () => {
           {error && (
             <div className="mb-6 text-red-500 text-sm">
               {error}
+            </div>
+          )}
+          {success && (
+            <div className="mb-6 text-green-500 text-sm">
+              {success}
             </div>
           )}
           <div className="mb-12 text-right">

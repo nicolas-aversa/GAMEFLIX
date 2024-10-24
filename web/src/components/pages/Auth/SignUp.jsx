@@ -1,7 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useContext } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Eye, EyeOff } from 'lucide-react';
 import { storage } from '../../../config/firebaseConfig';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
+import { AuthContext } from '../../../context/AuthContext';
 
 const SignUp = () => {
   const [userType, setUserType] = useState('customer');
@@ -20,6 +22,8 @@ const SignUp = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+  const { login } = useContext(AuthContext);
+  const navigate = useNavigate();
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -74,11 +78,37 @@ const SignUp = () => {
       const result = await response.json();
 
       if (response.ok) {
-        setSuccess(result.message);
-        // Redirigir o realizar alguna acción adicional
-        setTimeout(() => {
-          setSuccess('');
-        }, 5000);
+        // Intentar loguear al usuario automáticamente después de un registro exitoso
+        const loginUrl = 'http://localhost:8000/login';
+        const loginResponse = await fetch(loginUrl, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            email: formData.email,
+            password: formData.password
+          })
+        });
+
+        const loginResult = await loginResponse.json();
+
+        if (loginResponse.ok) {
+          // Guardar el token y actualizar el estado de autenticación
+          login(loginResult.accessToken);
+          setSuccess('Registration and login successful!');
+          // Limpiar el mensaje de éxito después de 5 segundos
+          setTimeout(() => {
+            setSuccess('');
+            // Redirigir al home
+            navigate('/');
+          }, 1000);
+        } else {
+          setError(loginResult.message);
+          setTimeout(() => {
+            setError('');
+          }, 5000);
+        }
       } else {
         setError(result.message);
         setTimeout(() => {
@@ -98,7 +128,7 @@ const SignUp = () => {
     <div className="min-h-6 bg-[#220447] text-white font-['Inter']">
       <main className="flex justify-center items-center mt-8">
         <form onSubmit={handleSubmit} className="w-full max-w-3xl">
-          <h2 className="text-2xl font-bold mt-3 mb-14 text-center">Complete los siguientes datos:</h2>
+          <h2 className="text-2xl font-bold mt-3 mb-8 text-center">Complete los siguientes datos:</h2>
           
           <div className="flex justify-center mb-12 space-x-4">
             <button
@@ -304,7 +334,6 @@ const SignUp = () => {
               </div>
             </div>
           )}
-          
           
         </form>
       </main>

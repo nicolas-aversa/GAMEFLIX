@@ -1,24 +1,25 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { AuthProvider } from '../context/AuthContext';
 import './index.css';
-import Layout from '../components/layout';
 import Home from '../components/pages/Home/Home';
 import SignUp from '../components/pages/Auth/SignUp';
 import Login from '../components/pages/Auth/Login';
-import Header from '../components/header';
+import Header from '../components/Header';
 
 function App() {
   return (
-    <Router>
-      <Layout>
+    <AuthProvider>
+      <Router>
+        <Header />
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/login" element={<Login />} />
           <Route path="/signup" element={<SignUp />} />
           {/* Puedes agregar más rutas aquí según sea necesario */}
         </Routes>
-      </Layout>
-    </Router>
+      </Router>
+    </AuthProvider>
   );
 }
 

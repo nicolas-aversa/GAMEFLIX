@@ -1,8 +1,12 @@
-import React, { useState } from 'react';
+import React, { useState, useContext } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import { AuthContext } from '../context/AuthContext';
 import gameflixLogo from '../img/gameflix-logo.png';
 
 export default function Header() {
   const [searchValue, setSearchValue] = useState('');
+  const { isAuthenticated, logout } = useContext(AuthContext);
+  const navigate = useNavigate();
 
   const handleSearchChange = (e) => {
     setSearchValue(e.target.value);
@@ -13,17 +17,22 @@ export default function Header() {
     console.log('Search:', searchValue);
   };
 
+  const handleLogout = () => {
+    logout();
+    navigate('/');
+  };
+
   return (
     <header className="text-white py-4 bg-[#220447]">
       <div className="mx-auto px-14 max-w-6xl">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-14">
-            <a href="/" className="flex items-center">
+            <Link to="/" className="flex items-center">
               <img src={gameflixLogo} alt="GameFlix Logo" className="h-12" />
-            </a>
-            <button className="hover:text-secondary transition-colors duration-300 font-medium text-base">
+            </Link>
+            <Link to="/search" className="hover:text-secondary transition-colors duration-300 font-medium text-base">
               Buscar videojuegos
-            </button>
+            </Link>
           </div>
           
           <div className="flex-grow mx-4">
@@ -60,28 +69,57 @@ export default function Header() {
           </div>
 
           <div className="flex items-center space-x-14">
-            <button className="bg-secondary text-[#220447] rounded-full px-4 py-2 hover:bg-opacity-80 transition-colors duration-300 text-sm font-medium">
-              Registrarse
-            </button>
-            <button className="flex items-center space-x-2 text-white hover:text-secondary transition-colors duration-300 font-medium text-base">
-              <span>Iniciar sesión</span>
-              <svg
-                width="20"
-                height="20"
-                viewBox="0 0 24 24"
-                fill="none"
-                xmlns="http://www.w3.org/2000/svg"
-                className="text-[#C93DEC]"
-              >
-                <path
-                  d="M15 3H19C19.5304 3 20.0391 3.21071 20.4142 3.58579C20.7893 3.96086 21 4.46957 21 5V19C21 19.5304 20.7893 20.0391 20.4142 20.4142C20.0391 20.7893 19.5304 21 19 21H15M10 17L15 12M15 12L10 7M15 12H3"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              </svg>
-            </button>
+            {isAuthenticated ? (
+              <>
+                <Link to="/account" className="bg-secondary text-[#220447] rounded-full px-4 py-2 hover:bg-opacity-80 transition-colors duration-300 text-sm font-medium">
+                  Mi cuenta
+                </Link>
+                <button onClick={handleLogout} className="flex items-center space-x-2 text-white hover:text-secondary transition-colors duration-300 font-medium text-base">
+                  <span>Cerrar sesión</span>
+                  <svg
+                    width="20"
+                    height="20"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="text-[#C93DEC]"
+                  >
+                    <path
+                      d="M15 3H19C19.5304 3 20.0391 3.21071 20.4142 3.58579C20.7893 3.96086 21 4.46957 21 5V19C21 19.5304 20.7893 20.0391 20.4142 20.4142C20.0391 20.7893 19.5304 21 19 21H15M10 17L15 12M15 12L10 7M15 12H3"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                  </svg>
+                </button>
+              </>
+            ) : (
+              <>
+                <Link to="/signup" className="bg-secondary text-[#220447] rounded-full px-4 py-2 hover:bg-opacity-80 transition-colors duration-300 text-sm font-medium">
+                  Registrarse
+                </Link>
+                <Link to="/login" className="flex items-center space-x-2 text-white hover:text-secondary transition-colors duration-300 font-medium text-base">
+                  <span>Iniciar sesión</span>
+                  <svg
+                    width="20"
+                    height="20"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="text-[#C93DEC]"
+                  >
+                    <path
+                      d="M15 3H19C19.5304 3 20.0391 3.21071 20.4142 3.58579C20.7893 3.96086 21 4.46957 21 5V19C21 19.5304 20.7893 20.0391 20.4142 20.4142C20.0391 20.7893 19.5304 21 19 21H15M10 17L15 12M15 12L10 7M15 12H3"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                  </svg>
+                </Link>
+              </>
+            )}
           </div>
         </div>
       </div>
