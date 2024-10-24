@@ -6,7 +6,7 @@ import Home from '../components/pages/Home/Home';
 import SignUp from '../components/pages/Auth/SignUp';
 import Login from '../components/pages/Auth/Login';
 import Header from '../components/header';
-
+import Reset from '../components/pages/Auth/Reset'; 
 function App() {
   return (
     <Router>
@@ -15,6 +15,7 @@ function App() {
           <Route path="/" element={<Home />} />
           <Route path="/login" element={<Login />} />
           <Route path="/signup" element={<SignUp />} />
+          <Route path="/resetPass" element={<Reset />} />
           {/* Puedes agregar más rutas aquí según sea necesario */}
         </Routes>
       </Layout>

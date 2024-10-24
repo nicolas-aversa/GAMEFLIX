@@ -96,7 +96,7 @@ const Login = () => {
             </div>
           )}
           <div className="mb-12 text-right">
-            <a href="#" className="text-sm text-[#C93DEC] hover:underline">
+            <a href="/resetPass" className="text-sm text-[#C93DEC] hover:underline">
               ¿Olvidaste tu contraseña?
             </a>
           </div>

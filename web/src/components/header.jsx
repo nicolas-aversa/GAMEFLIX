@@ -60,10 +60,10 @@ export default function Header() {
           </div>
 
           <div className="flex items-center space-x-14">
-            <button className="bg-secondary text-[#220447] rounded-full px-4 py-2 hover:bg-opacity-80 transition-colors duration-300 text-sm font-medium">
+            <a href='/signUp' className="bg-secondary text-[#220447] rounded-full px-4 py-2 hover:bg-opacity-80 transition-colors duration-300 text-sm font-medium">
               Registrarse
-            </button>
-            <button className="flex items-center space-x-2 text-white hover:text-secondary transition-colors duration-300 font-medium text-base">
+            </a>
+            <a href='/login' className="flex items-center space-x-2 text-white hover:text-secondary transition-colors duration-300 font-medium text-base">
               <span>Iniciar sesión</span>
               <svg
                 width="20"
@@ -81,7 +81,7 @@ export default function Header() {
                   strokeLinejoin="round"
                 />
               </svg>
-            </button>
+            </a>
           </div>
         </div>
       </div>
