@@ -43,7 +43,7 @@ const Login = () => {
   return (
     <div className="min-h-6 bg-[#220447] text-white flex justify-center items-center font-['Inter']">
       <div className="w-full max-w-md p-6">
-        <h2 className="text-3xl font-bold mb-12 text-center">Bienvenido de vuelta!</h2>
+        <h2 className="text-2xl font-bold mb-14 text-center">Bienvenido de vuelta!</h2>
         <form onSubmit={handleSubmit}>
           <div className="mb-12">
             <label htmlFor="email" className="block mb-2 text-sm">
@@ -55,7 +55,7 @@ const Login = () => {
                 id="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="w-full bg-[#3A0453] rounded-full px-4 py-2 pr-10 text-sm"
+                className="w-full bg-[#3A0453] text-gray-300 rounded-full px-4 py-2 pr-10 text-sm"
                 required
               />
               <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
@@ -103,7 +103,7 @@ const Login = () => {
           <div className="flex justify-center">
             <button
               type="submit"
-              className="bg-[#C93DEC] text-white rounded-lg py-2 px-8 font-bold hover:bg-opacity-90 transition-colors"
+              className="bg-[#C93DEC] text-white rounded-2xl py-2 px-6 hover:bg-[#a331c4]"
             >
               Continuar
             </button>
