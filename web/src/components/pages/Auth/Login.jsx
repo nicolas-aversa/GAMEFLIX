@@ -43,10 +43,10 @@ const Login = () => {
   return (
     <div className="min-h-6 bg-[#220447] text-white flex justify-center items-center font-['Inter']">
       <div className="w-full max-w-md p-6">
-        <h2 className="text-2xl font-bold mb-14 text-center">Bienvenido de vuelta!</h2>
+        <h2 className="text-2xl font-bold mt-3 mb-14 text-center">Bienvenido de vuelta!</h2>
         <form onSubmit={handleSubmit}>
           <div className="mb-12">
-            <label htmlFor="email" className="block mb-2 text-sm">
+            <label htmlFor="email" className="block mb-2 text-sm font-medium">
               Correo electrónico
             </label>
             <div className="relative">
@@ -55,7 +55,7 @@ const Login = () => {
                 id="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="w-full bg-[#3A0453] text-gray-300 rounded-full px-4 py-2 pr-10 text-sm"
+                className="w-full bg-[#3A0453] text-[#B1AEAE] rounded-full px-4 py-2 pr-10 text-sm"
                 required
               />
               <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
@@ -64,7 +64,7 @@ const Login = () => {
             </div>
           </div>
           <div className="mb-6">
-            <label htmlFor="password" className="block mb-2 text-sm">
+            <label htmlFor="password" className="block mb-2 text-sm font-medium">
               Contraseña
             </label>
             <div className="relative">
@@ -73,7 +73,7 @@ const Login = () => {
                 id="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="w-full bg-[#3A0453] rounded-full px-4 py-2 text-sm pr-10"
+                className="w-full bg-[#3A0453] text-[#B1AEAE] rounded-full px-4 py-2 text-sm pr-10"
                 required
               />
               <button
@@ -103,7 +103,7 @@ const Login = () => {
           <div className="flex justify-center">
             <button
               type="submit"
-              className="bg-[#C93DEC] text-white rounded-2xl py-2 px-6 hover:bg-[#a331c4]"
+              className="bg-[#C93DEC] text-white rounded-2xl py-2 px-6 hover:bg-[#a331c4] font-medium"
             >
               Continuar
             </button>
